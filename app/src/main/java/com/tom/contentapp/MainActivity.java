@@ -70,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
             readContacts();
         }
 //        insertContact();
+        updateContact();
     }
 
     private void readContacts() {
@@ -117,7 +118,6 @@ public class MainActivity extends AppCompatActivity {
 
         ListView list = (ListView) findViewById(R.id.list);
         list.setAdapter(adapter);
-
         /*
         while(cursor.moveToNext()){
             //處理每一筆資料
@@ -155,4 +155,22 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+
+    private void updateContact(){
+        String where = Phone.DISPLAY_NAME + " = ? AND "+Data.MIMETYPE+ " = ?";
+        String[] params = new String[] {"Jane", Phone.CONTENT_ITEM_TYPE};
+        ArrayList ops = new ArrayList();
+        ops.add(ContentProviderOperation.newUpdate(Data.CONTENT_URI)
+                .withSelection(where, params)
+                .withValue(Phone.NUMBER, "0900333333")
+                .build());
+        try {
+            getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (OperationApplicationException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
