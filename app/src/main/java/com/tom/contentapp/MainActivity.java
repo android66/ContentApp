@@ -1,6 +1,7 @@
 package com.tom.contentapp;
 
 import android.content.ContentResolver;
+import android.content.Context;
 import android.database.Cursor;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
@@ -12,9 +13,12 @@ import android.support.v4.app.ActivityCompat;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.util.Log;
+import android.view.View;
 import android.widget.ListView;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.Contacts;
+import android.widget.TextView;
+
 import static android.Manifest.permission.*;
 
 public class MainActivity extends AppCompatActivity {
@@ -64,22 +68,45 @@ public class MainActivity extends AppCompatActivity {
         String[] projection = {Contacts._ID,
                 Contacts.DISPLAY_NAME,
                 Phone.NUMBER};
-        Cursor cursor = resolver.query(
-                Phone.CONTENT_URI,
-                projection,
+        Cursor cursor = resolver.query(Contacts.CONTENT_URI,
                 null,
                 null,
-                null );
-
-        ListView list = (ListView) findViewById(R.id.list);
+                null,
+                null);
         SimpleCursorAdapter adapter = new SimpleCursorAdapter(
                 this,
                 android.R.layout.simple_list_item_2,
                 cursor,
-                new String[]{Contacts.DISPLAY_NAME,
-                        Phone.NUMBER},
+                new String[] { Contacts.DISPLAY_NAME,
+                        Contacts.HAS_PHONE_NUMBER},
                 new int[] {android.R.id.text1, android.R.id.text2},
-                1);
+                1){
+            @Override
+            public void bindView(View view, Context context, Cursor cursor) {
+                super.bindView(view, context, cursor);
+                TextView phone = (TextView) view.findViewById(android.R.id.text2);
+                if (cursor.getInt(cursor.getColumnIndex(
+                        ContactsContract.Contacts.HAS_PHONE_NUMBER)) == 0) {
+                    phone.setText("");
+                } else {
+                    int id = cursor.getInt(cursor.getColumnIndex(Contacts._ID));
+                    Cursor pCursor = getContentResolver().query(
+                            Phone.CONTENT_URI,
+                            null,
+                            Phone.CONTACT_ID + "=?",
+                            new String[]{String.valueOf(id)},
+                            null);
+                    if (pCursor.moveToFirst()) {
+                        String number = pCursor.getString(pCursor.getColumnIndex(
+                                ContactsContract.CommonDataKinds.Phone.DATA));
+                        phone.setText(number);
+
+                    }
+                }
+            }
+        };
+
+        ListView list = (ListView) findViewById(R.id.list);
         list.setAdapter(adapter);
 
         /*
