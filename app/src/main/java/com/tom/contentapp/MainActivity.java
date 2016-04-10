@@ -70,7 +70,8 @@ public class MainActivity extends AppCompatActivity {
             readContacts();
         }
 //        insertContact();
-        updateContact();
+//        updateContact();
+        deleteContact();
     }
 
     private void readContacts() {
@@ -172,5 +173,19 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-
+    private void deleteContact(){
+        String where = ContactsContract.Data.DISPLAY_NAME + " = ? ";
+        String[] params = new String[] {"Jane"};
+        ArrayList ops = new ArrayList();
+        ops.add(ContentProviderOperation.newDelete(RawContacts.CONTENT_URI)
+                .withSelection(where, params)
+                .build());
+        try {
+            getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (OperationApplicationException e) {
+            e.printStackTrace();
+        }
+    }
 }
